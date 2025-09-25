@@ -8,6 +8,7 @@ export class AppController {
   @Get()
   @Render('home') // sử dụng decorator @Render để render view 'home'
   getHello() {
-    // return 'this.appService.getHello()';
+    const message = this.appService.getHello();
+    return { message };
   }
 }
