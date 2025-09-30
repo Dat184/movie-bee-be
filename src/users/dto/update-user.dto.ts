@@ -17,10 +17,6 @@ export class UpdateUserDto {
   lastName?: string;
 
   @IsOptional()
-  @IsString()
-  age?: number;
-
-  @IsOptional()
   @IsEnum(UserGender)
   gender?: UserGender;
 }

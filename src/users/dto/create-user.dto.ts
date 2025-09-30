@@ -15,11 +15,7 @@ export class CreateUserDto {
   @IsNotEmpty({ message: 'Last name should not be empty' })
   lastName: string;
 
-  @IsNotEmpty({ message: 'Age should not be empty' })
-  age: number;
-
   @IsNotEmpty({ message: 'Gender should not be empty' })
   @IsEnum(UserGender)
   gender: UserGender;
 }
-

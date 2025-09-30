@@ -32,6 +32,7 @@ import { APP_GUARD } from '@nestjs/core';
   controllers: [AppController],
   providers: [
     AppService,
+    
     // {
     //  set up global guard
     //   provide: APP_GUARD,

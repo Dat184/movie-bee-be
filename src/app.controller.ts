@@ -19,24 +19,4 @@ export class AppController {
     private readonly appService: AppService,
     private authService: AuthService,
   ) {}
-
-  @Get()
-  @Render('home') // sử dụng decorator @Render để render view 'home'
-  getHello() {
-    const message = this.appService.getHello();
-    return { message };
-  }
-
-  @Post('/login')
-  @UseGuards(LocalAuthGuard)
-  @Public()
-  handleLogin(@Request() req) {
-    return this.authService.login(req.user._doc);
-  }
-
-  // @UseGuards(JwtAuthGuard)
-  @Get('profile')
-  getProfile(@Request() req) {
-    return req.user;
-  }
 }

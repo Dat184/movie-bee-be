@@ -3,9 +3,7 @@ import { HydratedDocument } from 'mongoose';
 import { UserGender } from 'src/enums/user-gender';
 import { UserRole } from 'src/enums/user-role';
 
-
-
-@Schema()
+@Schema({ timestamps: true })
 export class User {
   @Prop({ required: true })
   email: string;
@@ -19,14 +17,23 @@ export class User {
   @Prop({ required: true })
   lastName: string;
 
-  @Prop()
-  age: number;
-
   @Prop({ enum: UserGender })
   gender: UserGender;
 
   @Prop({ enum: UserRole, default: UserRole.USER })
   role: UserRole;
+
+  @Prop({ default: false })
+  isVerified: boolean;
+
+  @Prop({ default: false })
+  isVip: boolean;
+
+  @Prop()
+  createdAt?: Date;
+
+  @Prop()
+  updatedAt?: Date;
 }
 
 export type UserDocument = HydratedDocument<User>;

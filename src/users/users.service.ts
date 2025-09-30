@@ -16,7 +16,7 @@ export class UsersService {
     @InjectModel(UserM.name) private userModel: SoftDeleteModel<UserDocument>,
   ) {}
   async create(createUserDto: CreateUserDto) {
-    const { email, password, firstName, lastName, age, gender } = createUserDto;
+    const { email, password, firstName, lastName, gender } = createUserDto;
     const existsUser = await this.userModel.findOne({
       email,
     });
@@ -34,7 +34,6 @@ export class UsersService {
       password: hashedPassword,
       firstName,
       lastName,
-      age,
       gender,
     });
 
@@ -73,7 +72,25 @@ export class UsersService {
   }
 
   async findOne(id: string) {
-    return this.notFoundUser(id);
+    if (!mongo.ObjectId.isValid(id)) {
+      throw new AppException({
+        message: 'Not found user',
+        errorCode: 'USER_NOT_FOUND',
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
+    const user = await this.userModel
+      .findOne({ _id: id })
+      .select('-password')
+      .exec();
+    if (!user) {
+      throw new AppException({
+        message: 'Not found user',
+        errorCode: 'USER_NOT_FOUND',
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
+    return user;
   }
 
   async findOneByUsername(username: string) {
@@ -82,7 +99,24 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    await this.notFoundUser(id);
+    if (!mongo.ObjectId.isValid(id)) {
+      throw new AppException({
+        message: 'Not found user',
+        errorCode: 'USER_NOT_FOUND',
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
+    const user = await this.userModel
+      .findOne({ _id: id })
+      .select('-password')
+      .exec();
+    if (!user) {
+      throw new AppException({
+        message: 'Not found user',
+        errorCode: 'USER_NOT_FOUND',
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
     const updated = await this.userModel.updateOne(
       { _id: id },
       {
