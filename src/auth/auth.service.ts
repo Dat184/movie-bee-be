@@ -6,6 +6,7 @@ import { IUser } from 'src/users/users.interface';
 import { ConfigService } from '@nestjs/config';
 import ms from 'ms';
 import { Response } from 'express';
+import { ok } from 'assert';
 
 @Injectable()
 export class AuthService {
@@ -155,5 +156,11 @@ export class AuthService {
 
   async getMyProfile(payload: IUser) {
     return payload;
+  }
+
+  async logout(response: Response) {
+    response.clearCookie('refresh_token');
+    response.clearCookie('access_token');
+    return 'ok';
   }
 }
