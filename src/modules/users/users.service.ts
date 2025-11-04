@@ -135,7 +135,7 @@ export class UsersService {
       .limit(defaultLimit)
       .sort(sort as any)
       .select('-password -OTP -otpExpirationTime')
-      .populate(population)
+      .populate(population )
       .exec();
 
     return {

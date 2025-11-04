@@ -26,6 +26,9 @@ export class Movie {
 
   @Prop()
   isDisplay: boolean;
+
+  @Prop()
+  releaseDate?: Date;
 }
 
 export type MovieDocument = HydratedDocument<Movie>;

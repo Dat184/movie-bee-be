@@ -8,6 +8,7 @@ import {
   Delete,
   UseInterceptors,
   UploadedFiles,
+  Query,
 } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
@@ -43,8 +44,25 @@ export class MoviesController {
   }
 
   @Get()
-  async findAll() {
-    return this.moviesService.findAll();
+  @Roles(UserRole.ADMIN)
+  @ResponseMessage('Retrieved all movies successfully')
+  async findAll(
+    @Query('current') currentPage: string,
+    @Query('pageSize') limit: string,
+    @Query() qs: string,
+  ) {
+    return this.moviesService.findAll(+currentPage, +limit, qs);
+  }
+
+  @Get()
+  @ResponseMessage('Retrieved all movies successfully')
+  async findDisplay(
+    @Query('current') currentPage: string,
+    @Query('pageSize') limit: string,
+    @Query() qs: string,
+  ) {
+    // ?title=/abc/i to find by name movie
+    return this.moviesService.findAllEnabled(+currentPage, +limit, qs);
   }
 
   @Get(':id')

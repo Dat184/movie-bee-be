@@ -15,6 +15,7 @@ import { GenresModule } from './modules/genres/genres.module';
 import { CastModule } from './modules/cast/cast.module';
 import { MovieCastModule } from './modules/movie-cast/movie-cast.module';
 import { MovieGenreModule } from './modules/movie-genre/movie-genre.module';
+import { CommentsModule } from './modules/comments/comments.module'; 
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { MovieGenreModule } from './modules/movie-genre/movie-genre.module';
     CastModule,
     MovieCastModule,
     MovieGenreModule,
+    CommentsModule,
   ],
   controllers: [AppController],
   providers: [

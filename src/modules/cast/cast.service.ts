@@ -37,7 +37,7 @@ export class CastService {
       .skip(offset)
       .limit(defaultLimit)
       .sort(sort as any)
-      .select(projection)
+      .select(projection as any)
       .populate(population)
       .exec();
 

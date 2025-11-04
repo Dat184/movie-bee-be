@@ -6,6 +6,7 @@ import { Movie, MovieDocument } from './schemas/movie.schemas';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { AppException } from 'src/exception/app.exception';
+import aqp from 'api-query-params';
 
 @Injectable()
 export class MoviesService {
@@ -49,12 +50,77 @@ export class MoviesService {
     return newMovie;
   }
 
-  findAll() {
-    return `This action returns all movies`;
+  async findAll(currentPage: number, limit: number, qs: string) {
+    const { filter, sort, projection, population } = aqp(qs);
+    delete filter.current;
+    delete filter.pageSize;
+
+    let offset = (+currentPage - 1) * +limit;
+    let defaultLimit = +limit ? +limit : 10;
+    const totalItems = (await this.movieModel.find(filter)).length;
+    const totalPages = Math.ceil(totalItems / defaultLimit);
+
+    const result = await this.movieModel
+      .find(filter)
+      .skip(offset)
+      .limit(defaultLimit)
+      .sort(sort as any)
+      .select(projection as any)
+      .populate(population)
+      .exec();
+
+    return {
+      meta: {
+        current: currentPage, //trang hiện tại
+        pageSize: limit, //số lượng bản ghi đã lấy
+        pages: totalPages, //tổng số trang với điều kiện query
+        total: totalItems, // tổng số phần tử (số bản ghi)
+      },
+      result, //kết quả query
+    };
+  }
+
+  async findAllEnabled(currentPage: number, limit: number, qs: string) {
+    const { filter, sort, projection, population } = aqp(qs);
+    delete filter.current;
+    delete filter.pageSize;
+
+    let offset = (+currentPage - 1) * +limit;
+    let defaultLimit = +limit ? +limit : 10;
+    const totalItems = (await this.movieModel.find(filter)).length;
+    const totalPages = Math.ceil(totalItems / defaultLimit);
+
+    const result = await this.movieModel
+      .find(filter, { isDisplay: true })
+      .skip(offset)
+      .limit(defaultLimit)
+      .sort({ imdbRating: -1 })
+      .select(projection as any)
+      .populate(population)
+      .exec();
+
+    return {
+      meta: {
+        current: currentPage, //trang hiện tại
+        pageSize: limit, //số lượng bản ghi đã lấy
+        pages: totalPages, //tổng số trang với điều kiện query
+        total: totalItems, // tổng số phần tử (số bản ghi)
+      },
+      result, //kết quả query
+    };
+  }
+
+  async findBannerMovies() {
+    return await this.movieModel
+      .find({ isBanner: true, isDisplay: true })
+      .sort({ releaseDate: -1 })
+      .limit(10)
+      .populate('genres', 'name')
+      .exec();
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} movie`;
+    return this.movieModel.findById(id).exec();
   }
 
   update(id: number, updateMovieDto: UpdateMovieDto) {
