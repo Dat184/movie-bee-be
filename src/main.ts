@@ -4,7 +4,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
-import { JwtAuthGuard } from './auth/guard/jwt-auth.guard';
+import { JwtAuthGuard } from './modules/auth/guard/jwt-auth.guard';
 import cookieParser from 'cookie-parser';
 import { TransformInterceptor } from './inteceptors/transform.interceptor';
 

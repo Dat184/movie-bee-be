@@ -1,13 +1,20 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './users/users.module';
+import { UsersModule } from './modules/users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthModule } from './auth/auth.module';
+import { AuthModule } from './modules/auth/auth.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { softDeletePlugin } from 'soft-delete-plugin-mongoose';
-import { JwtAuthGuard } from './auth/guard/jwt-auth.guard';
+import { JwtAuthGuard } from './modules/auth/guard/jwt-auth.guard';
 import { APP_GUARD } from '@nestjs/core';
+import { MailModule } from './modules/mail/mail.module';
+import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
+import { MoviesModule } from './modules/movies/movies.module';
+import { GenresModule } from './modules/genres/genres.module';
+import { CastModule } from './modules/cast/cast.module';
+import { MovieCastModule } from './modules/movie-cast/movie-cast.module';
+import { MovieGenreModule } from './modules/movie-genre/movie-genre.module';
 
 @Module({
   imports: [
@@ -28,11 +35,18 @@ import { APP_GUARD } from '@nestjs/core';
     }),
     UsersModule,
     AuthModule,
+    MailModule,
+    CloudinaryModule,
+    MoviesModule,
+    GenresModule,
+    CastModule,
+    MovieCastModule,
+    MovieGenreModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
-    
+
     // {
     //  set up global guard
     //   provide: APP_GUARD,
