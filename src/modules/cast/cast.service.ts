@@ -5,6 +5,7 @@ import { Cast, CastDocument } from './schemas/cast.schemas';
 import { InjectModel } from '@nestjs/mongoose';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import aqp from 'api-query-params';
 
 @Injectable()
 export class CastService {
@@ -21,19 +22,45 @@ export class CastService {
     return createdCast;
   }
 
-  findAll() {
-    return `This action returns all cast`;
+  async findAll(currentPage: number, limit: number, qs: string) {
+    const { filter, sort, projection, population } = aqp(qs);
+    delete filter.current;
+    delete filter.pageSize;
+
+    let offset = (+currentPage - 1) * +limit;
+    let defaultLimit = +limit ? +limit : 10;
+    const totalItems = (await this.castModel.find(filter)).length;
+    const totalPages = Math.ceil(totalItems / defaultLimit);
+
+    const result = await this.castModel
+      .find(filter)
+      .skip(offset)
+      .limit(defaultLimit)
+      .sort(sort as any)
+      .select(projection)
+      .populate(population)
+      .exec();
+
+    return {
+      meta: {
+        current: currentPage, //trang hiện tại
+        pageSize: limit, //số lượng bản ghi đã lấy
+        pages: totalPages, //tổng số trang với điều kiện query
+        total: totalItems, // tổng số phần tử (số bản ghi)
+      },
+      result, //kết quả query
+    };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} cast`;
+  async findOne(id: string) {
+    return await this.castModel.findById(id).exec();
   }
 
-  update(id: number, updateCastDto: UpdateCastDto) {
+  update(id: string, updateCastDto: UpdateCastDto) {
     return `This action updates a #${id} cast`;
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} cast`;
   }
 }
