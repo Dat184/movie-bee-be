@@ -84,7 +84,7 @@ export class UsersService {
   }
 
   async verifyEmail(email: string, otp: string) {
-    const user = await this.findOneByUsername(email);
+    const user = await this.findOneByEmail(email);
     if (!user) {
       throw new AppException({
         message: 'Not found user',
@@ -135,7 +135,7 @@ export class UsersService {
       .limit(defaultLimit)
       .sort(sort as any)
       .select('-password -OTP -otpExpirationTime')
-      .populate(population )
+      .populate(population)
       .exec();
 
     return {
@@ -171,8 +171,8 @@ export class UsersService {
     return user;
   }
 
-  async findOneByUsername(username: string) {
-    const user = await this.userModel.findOne({ email: username }).exec();
+  async findOneByEmail(email: string) {
+    const user = await this.userModel.findOne({ email }).exec();
     return user;
   }
 

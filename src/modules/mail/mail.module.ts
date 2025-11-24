@@ -24,7 +24,7 @@ import { join } from 'path/win32';
           configService.get<string>('EMAIL_PREVIEW') === 'true' ? true : false,
 
         template: {
-          dir: join(__dirname, '..', 'templates'),
+          dir: join(__dirname, 'templates'),
           adapter: new HandlebarsAdapter(),
           options: {
             strict: true,

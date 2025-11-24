@@ -64,6 +64,13 @@ export class AuthController {
     return this.usersService.verifyEmail(email, otp);
   }
 
+  // @Post('resend-verify-email')
+  // @Public()
+  // @ResponseMessage('Verification email resent successfully')
+  // resendVerifyEmail(@Body('email') email: string) {
+  //   return this.usersService.resendVerifyEmail(email);
+  // }
+
   @Post('register')
   @Public()
   @ResponseMessage('User created successfully')
@@ -84,6 +91,8 @@ export class AuthController {
     @User() user: IUser,
     @Res({ passthrough: true }) res: Response,
   ) {
-    return this.authService.login(user, res);
+    await this.authService.login(user, res);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
+    return res.redirect(`${frontendUrl}`);
   }
 }

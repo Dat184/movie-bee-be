@@ -29,6 +29,7 @@ async function bootstrap() {
     }),
   );
 
+  // set up global prefix and versioning
   app.setGlobalPrefix('api');
   app.enableVersioning({
     type: VersioningType.URI,
@@ -36,6 +37,11 @@ async function bootstrap() {
   });
 
   app.use(cookieParser());
+  app.enableCors({
+    origin: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
   // console.log(configService.get<string>('MONGO_URL'));
   await app.listen(configService.get<string>('PORT'));
 }

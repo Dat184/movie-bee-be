@@ -10,8 +10,4 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString({ message: 'Last name must be a string' })
   lastName?: string;
-
-  @IsOptional()
-  @IsEmail({}, { message: 'Invalid email format' })
-  avatar?: string;
 }

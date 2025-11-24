@@ -15,13 +15,20 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOneByUsername(username);
+  async validateUser(email: string, pass: string): Promise<any> {
+    const user = await this.usersService.findOneByEmail(email);
     if (!user.password) {
       throw new AppException({
         message:
           'This account was created with Google. Please use Google Sign-In.',
         errorCode: 'GOOGLE_ACCOUNT',
+        statusCode: HttpStatus.BAD_REQUEST,
+      });
+    }
+    if (user.isVerified === false) {
+      throw new AppException({
+        message: 'Email not verified. Please verify your email before login.',
+        errorCode: 'EMAIL_NOT_VERIFIED',
         statusCode: HttpStatus.BAD_REQUEST,
       });
     }
@@ -42,6 +49,7 @@ export class AuthService {
       email: user.email,
       role: user.role,
       isVerified: user.isVerified,
+      avatar: user.avatar,
       sub: 'token login',
       iss: 'from server',
     };
@@ -72,9 +80,13 @@ export class AuthService {
     });
 
     return {
-      access_token,
       user: {
         email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatar: user.avatar,
+        role: user.role,
+        isVerified: user.isVerified,
       },
     };
   }
@@ -104,6 +116,7 @@ export class AuthService {
         email: user.email,
         role: user.role,
         isVerified: user.isVerified,
+        avatar: user.avatar,
         sub: 'token refresh',
         iss: 'from server',
       };
@@ -153,7 +166,8 @@ export class AuthService {
   }
 
   async getMyProfile(payload: IUser) {
-    return payload;
+    const user = await this.usersService.findOne(payload._id);
+    return user;
   }
 
   async logout(response: Response) {
@@ -163,7 +177,7 @@ export class AuthService {
   }
 
   async validateGoogleUser(profile: any) {
-    const user = await this.usersService.findOneByUsername(profile.email);
+    const user = await this.usersService.findOneByEmail(profile.email);
     if (user) {
       return user;
     }

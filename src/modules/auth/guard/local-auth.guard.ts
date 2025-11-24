@@ -10,13 +10,13 @@ import { AppException } from 'src/exception/app.exception';
 export class LocalAuthGuard extends AuthGuard('local') {
   canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
-    const { username, password } = request.body;
+    const { email, password } = request.body;
 
     // Validate trước khi Passport xử lý
-    if (!username || username === '') {
+    if (!email || email === '') {
       throw new AppException({
-        message: 'Username is required',
-        errorCode: 'USERNAME_REQUIRED',
+        message: 'Email is required',
+        errorCode: 'EMAIL_REQUIRED',
         statusCode: HttpStatus.BAD_REQUEST,
       });
     }
