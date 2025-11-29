@@ -1,5 +1,5 @@
-import { Prop, Schema } from '@nestjs/mongoose';
-import mongoose from 'mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
 import { Genre } from 'src/modules/genres/schemas/genre.schemas';
 import { Movie } from 'src/modules/movies/schemas/movie.schemas';
 
@@ -19,3 +19,6 @@ export class MovieGenre {
   })
   genreId: mongoose.Schema.Types.ObjectId;
 }
+
+export type MovieGenreDocument = HydratedDocument<MovieGenre>;
+export const MovieGenreSchema = SchemaFactory.createForClass(MovieGenre);

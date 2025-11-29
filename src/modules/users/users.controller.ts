@@ -61,4 +61,11 @@ export class UsersController {
   ) {
     return await this.usersService.uploadAvatar(user, file);
   }
+
+  @Post('create')
+  @Roles(UserRole.ADMIN)
+  @ResponseMessage('User created successfully')
+  create(@Body() createUserDto: CreateUserDto) {
+    return this.usersService.createUser(createUserDto);
+  }
 }

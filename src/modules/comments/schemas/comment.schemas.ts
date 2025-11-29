@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument, mongo } from 'mongoose';
-import { User } from 'src/decorator/customize';
 import { Movie } from 'src/modules/movies/schemas/movie.schemas';
+import { User } from 'src/modules/users/schemas/user.schemas';
 
 @Schema({ timestamps: true })
 export class Comment {
@@ -17,10 +17,12 @@ export class Comment {
     required: true,
   })
   movieId: mongoose.Schema.Types.ObjectId;
+
+  @Prop()
+  isSafe: boolean;
 }
 
 export type CommentDocument = HydratedDocument<Comment>;
 export const CommentSchema = SchemaFactory.createForClass(Comment);
-
 
 CommentSchema.index({ movieId: 1, createdAt: -1 }); // Lấy comments của movie, sort by newest

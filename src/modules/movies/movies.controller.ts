@@ -54,20 +54,9 @@ export class MoviesController {
     return this.moviesService.findAll(+currentPage, +limit, qs);
   }
 
-  @Get()
-  @ResponseMessage('Retrieved all movies successfully')
-  async findDisplay(
-    @Query('current') currentPage: string,
-    @Query('pageSize') limit: string,
-    @Query() qs: string,
-  ) {
-    // ?title=/abc/i to find by name movie
-    return this.moviesService.findAllEnabled(+currentPage, +limit, qs);
-  }
-
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return this.moviesService.findOne(+id);
+    return this.moviesService.findOne(id);
   }
 
   @Patch(':id')
@@ -75,11 +64,11 @@ export class MoviesController {
     @Param('id') id: string,
     @Body() updateMovieDto: UpdateMovieDto,
   ) {
-    return this.moviesService.update(+id, updateMovieDto);
+    return this.moviesService.update(id, updateMovieDto);
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    return this.moviesService.remove(+id);
+    return this.moviesService.remove(id);
   }
 }

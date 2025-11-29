@@ -83,6 +83,33 @@ export class UsersService {
     };
   }
 
+  async createUser(createUserDto: CreateUserDto) {
+    const { email, password, firstName, lastName, isVerified } = createUserDto;
+    const existsUser = await this.userModel.findOne({
+      email,
+    });
+    if (existsUser) {
+      throw new AppException({
+        message: 'User with this email already exists',
+        errorCode: 'USER_ALREADY_EXISTS',
+        statusCode: HttpStatus.BAD_REQUEST,
+      });
+    }
+    const hashedPassword = this.getHashedPassword(password);
+    const defaultAvatar =
+      'http://res.cloudinary.com/dd27hbc2d/image/upload/v1762152948/products/qifq83xzyrvao1pf6n4u.jpg';
+
+    const newUser = await this.userModel.create({
+      email,
+      password: hashedPassword,
+      firstName,
+      lastName,
+      isVerified,
+      avatar: defaultAvatar,
+    });
+    return newUser;
+  }
+
   async verifyEmail(email: string, otp: string) {
     const user = await this.findOneByEmail(email);
     if (!user) {
@@ -173,6 +200,13 @@ export class UsersService {
 
   async findOneByEmail(email: string) {
     const user = await this.userModel.findOne({ email }).exec();
+    if (!user) {
+      throw new AppException({
+        message: 'Not found user',
+        errorCode: 'USER_NOT_FOUND',
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
     return user;
   }
 

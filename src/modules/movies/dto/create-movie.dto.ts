@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -24,6 +25,12 @@ export class CreateMovieDto {
   trailerUrl?: string;
 
   @IsOptional()
-  @IsString()
+  @IsString({ each: true })
+  @IsArray()
   genreIds?: string[];
+
+  @IsOptional()
+  @IsString({ each: true })
+  @IsArray()
+  castIds?: string[];
 }

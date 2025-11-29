@@ -148,9 +148,13 @@ export class AuthService {
       });
 
       return {
-        access_token: newAccessToken,
         user: {
           email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          avatar: user.avatar,
+          role: user.role,
+          isVerified: user.isVerified,
         },
       };
     } catch (error) {

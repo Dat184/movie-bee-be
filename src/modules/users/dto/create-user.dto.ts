@@ -1,4 +1,12 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsString, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 
 export class CreateUserDto {
   @IsEmail({}, { message: 'Invalid email format' })
@@ -15,6 +23,10 @@ export class CreateUserDto {
   @IsNotEmpty({ message: 'Last name should not be empty' })
   @IsString({ message: 'Last name must be a string' })
   lastName: string;
+
+  @IsOptional()
+  @IsBoolean({ message: 'isVerified must be a boolean value' })
+  isVerified: boolean;
 }
 
 export class GoogleCreateUserDto {

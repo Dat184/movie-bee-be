@@ -28,8 +28,12 @@ export class GenresController {
 
   @Get()
   @ResponseMessage('Genres fetched successfully')
-  findAll(@Query() qs: string) {
-    return this.genresService.findAll(qs);
+  findAll(
+    @Query('current') currentPage: string,
+    @Query('pageSize') limit: string,
+    @Query() qs: string,
+  ) {
+    return this.genresService.findAll(+currentPage, +limit, qs);
   }
 
   @Get(':id')
