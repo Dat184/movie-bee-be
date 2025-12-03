@@ -54,6 +54,22 @@ export class MoviesController {
     return this.moviesService.findAll(+currentPage, +limit, qs);
   }
 
+  @Get('playlist')
+  @ResponseMessage('Retrieved playlist movies successfully')
+  async findPlaylistMovies(
+    @Query('current') currentPage: string,
+    @Query('pageSize') limit: string,
+    @Query() qs: string,
+  ) {
+    return this.moviesService.findPlaylistMovies(+currentPage, +limit, qs);
+  }
+
+  @Get('banner')
+  @ResponseMessage('Retrieved banner movies successfully')
+  async findBannerMovies() {
+    return this.moviesService.findBannerMovies();
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.moviesService.findOne(id);

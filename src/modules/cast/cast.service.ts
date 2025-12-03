@@ -22,6 +22,16 @@ export class CastService {
   ) {}
   async create(createCastDto: CreateCastDto, file: Express.Multer.File) {
     const imageUrl = await this.cloudinaryService.uploadFile(file, 'cast');
+    const existingCast = await this.castModel
+      .findOne({ name: createCastDto.name })
+      .exec();
+    if (existingCast) {
+      throw new AppException({
+        message: 'Cast with this name already exists',
+        errorCode: 'CAST_ALREADY_EXISTS',
+        statusCode: HttpStatus.BAD_REQUEST,
+      });
+    }
     const createdCast = await this.castModel.create({
       ...createCastDto,
       avatarPath: imageUrl.secure_url,

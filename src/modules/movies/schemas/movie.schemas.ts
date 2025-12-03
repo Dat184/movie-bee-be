@@ -21,8 +21,8 @@ export class Movie {
   @Prop()
   trailerUrl?: string;
 
-  @Prop()
-  IsBanner?: boolean;
+  @Prop({ default: false })
+  isBanner?: boolean;
 
   @Prop({ default: false })
   isDisplay: boolean;

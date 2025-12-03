@@ -167,12 +167,43 @@ export class MoviesService {
   }
 
   async findBannerMovies() {
-    return await this.movieModel
-      .find({ isBanner: true, isDisplay: true })
-      .sort({ releaseDate: -1 })
-      .limit(10)
-      .populate('genres', 'name')
-      .exec();
+    return await this.movieModel.aggregate([
+      // Match điều kiện
+      {
+        $match: {
+          isBanner: true,
+          isDisplay: true,
+          isDeleted: { $ne: true },
+        },
+      },
+      // Lookup genres
+      {
+        $lookup: {
+          from: 'moviegenres',
+          localField: '_id',
+          foreignField: 'movieId',
+          as: 'movieGenres',
+        },
+      },
+      {
+        $lookup: {
+          from: 'genres',
+          localField: 'movieGenres.genreId',
+          foreignField: '_id',
+          as: 'genres',
+        },
+      },
+
+      // Sort theo updatedAt (phim mới cập nhật gần đây nhất)
+      { $sort: { updatedAt: -1 } },
+      { $limit: 10 },
+      // Project để loại bỏ các field không cần thiết
+      {
+        $project: {
+          movieGenres: 0,
+        },
+      },
+    ]);
   }
 
   async findOne(id: string) {
@@ -288,5 +319,127 @@ export class MoviesService {
 
   remove(id: string) {
     return this.movieModel.softDelete({ _id: id });
+  }
+
+  async findPlaylistMovies(currentPage: number, limit: number, qs: string) {
+    const { filter } = aqp(qs);
+
+    // Lấy genre từ query string
+    const genreName = filter.genre;
+
+    if (!genreName) {
+      throw new AppException({
+        message: 'Genre is required',
+        errorCode: 'GENRE_REQUIRED',
+        statusCode: HttpStatus.BAD_REQUEST,
+      });
+    }
+
+    delete filter.current;
+    delete filter.pageSize;
+    delete filter.genre;
+
+    let offset = (+currentPage - 1) * +limit;
+    let defaultLimit = +limit ? +limit : 10;
+
+    // Aggregation pipeline để lọc phim theo thể loại
+    const result = await this.movieModel.aggregate([
+      // Lookup moviegenres
+      {
+        $lookup: {
+          from: 'moviegenres',
+          localField: '_id',
+          foreignField: 'movieId',
+          as: 'movieGenres',
+        },
+      },
+      // Lookup genres
+      {
+        $lookup: {
+          from: 'genres',
+          localField: 'movieGenres.genreId',
+          foreignField: '_id',
+          as: 'genres',
+        },
+      },
+      // Filter by genre name
+      {
+        $match: {
+          'genres.name': { $regex: genreName, $options: 'i' },
+          isDisplay: true,
+          isDeleted: { $ne: true }, // Thêm điều kiện này để loại bỏ phim đã xóa
+          ...filter,
+        },
+      },
+      // Lookup casts
+      {
+        $lookup: {
+          from: 'moviecasts',
+          localField: '_id',
+          foreignField: 'movieId',
+          as: 'movieCasts',
+        },
+      },
+      {
+        $lookup: {
+          from: 'casts',
+          localField: 'movieCasts.castId',
+          foreignField: '_id',
+          as: 'casts',
+        },
+      },
+      { $sort: { updatedAt: -1 } },
+      { $skip: offset },
+      { $limit: defaultLimit },
+      // Project
+      {
+        $project: {
+          movieGenres: 0,
+          movieCasts: 0,
+        },
+      },
+    ]);
+
+    // Count total items
+    const totalItems = await this.movieModel.aggregate([
+      {
+        $lookup: {
+          from: 'moviegenres',
+          localField: '_id',
+          foreignField: 'movieId',
+          as: 'movieGenres',
+        },
+      },
+      {
+        $lookup: {
+          from: 'genres',
+          localField: 'movieGenres.genreId',
+          foreignField: '_id',
+          as: 'genres',
+        },
+      },
+      {
+        $match: {
+          'genres.name': { $regex: genreName, $options: 'i' },
+          isDisplay: true,
+          isDeleted: { $ne: true },
+          ...filter,
+        },
+      },
+      { $count: 'total' },
+    ]);
+
+    const total = totalItems[0]?.total || 0;
+    const totalPages = Math.ceil(total / defaultLimit);
+
+    return {
+      meta: {
+        current: currentPage,
+        pageSize: limit,
+        pages: totalPages,
+        total,
+      },
+      result,
+    };
   }
 }
