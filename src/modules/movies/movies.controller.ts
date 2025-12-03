@@ -60,11 +60,24 @@ export class MoviesController {
   }
 
   @Patch(':id')
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'poster', maxCount: 1 },
+      { name: 'backdrop', maxCount: 1 },
+    ]),
+  )
   async update(
     @Param('id') id: string,
     @Body() updateMovieDto: UpdateMovieDto,
+    @UploadedFiles()
+    files: {
+      poster?: Express.Multer.File[];
+      backdrop?: Express.Multer.File[];
+    },
   ) {
-    return this.moviesService.update(id, updateMovieDto);
+    const poster = files?.poster?.[0] || null;
+    const backdrop = files?.backdrop?.[0] || null;
+    return this.moviesService.update(id, updateMovieDto, { poster, backdrop });
   }
 
   @Delete(':id')

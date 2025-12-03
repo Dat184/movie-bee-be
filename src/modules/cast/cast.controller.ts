@@ -51,8 +51,13 @@ export class CastController {
   @Patch(':id')
   @Roles(UserRole.ADMIN)
   @ResponseMessage('Cast updated successfully')
-  update(@Param('id') id: string, @Body() updateCastDto: UpdateCastDto) {
-    return this.castService.update(id, updateCastDto);
+  @UseInterceptors(FileInterceptor('file'))
+  update(
+    @Param('id') id: string,
+    @Body() updateCastDto: UpdateCastDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.castService.update(id, updateCastDto, file);
   }
 
   @Delete(':id')

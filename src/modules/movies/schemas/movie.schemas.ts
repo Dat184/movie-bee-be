@@ -24,7 +24,7 @@ export class Movie {
   @Prop()
   IsBanner?: boolean;
 
-  @Prop()
+  @Prop({ default: false })
   isDisplay: boolean;
 
   @Prop()

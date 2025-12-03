@@ -14,6 +14,7 @@ import {
   MovieGenre,
   MovieGenreSchema,
 } from '../movie-genre/schemas/movie-genre.schemas';
+import { CastModule } from '../cast/cast.module';
 
 @Module({
   controllers: [MoviesController],
@@ -25,6 +26,7 @@ import {
       { name: MovieGenre.name, schema: MovieGenreSchema },
     ]),
     CloudinaryModule,
+    CastModule
   ],
   exports: [MoviesService],
 })

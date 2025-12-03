@@ -6,11 +6,17 @@ import { Genre, GenreDocument } from './schemas/genre.schemas';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { AppException } from 'src/exception/app.exception';
 import aqp from 'api-query-params';
+import {
+  MovieGenre,
+  MovieGenreDocument,
+} from '../movie-genre/schemas/movie-genre.schemas';
 
 @Injectable()
 export class GenresService {
   constructor(
     @InjectModel(Genre.name) private genreModel: SoftDeleteModel<GenreDocument>,
+    @InjectModel(MovieGenre.name)
+    private movieGenreModel: SoftDeleteModel<MovieGenreDocument>,
   ) {}
   async create(createGenreDto: CreateGenreDto) {
     const isExist = await this.genreModel.findOne({
@@ -85,7 +91,25 @@ export class GenresService {
     return updatedGenre;
   }
 
-  remove(id: string) {
-    return this.genreModel.softDelete({ _id: id });
+  async remove(id: string) {
+    const genre = await this.genreModel.findOne({ _id: id });
+    if (!genre) {
+      throw new AppException({
+        message: 'Genre not found',
+        errorCode: 'GENRE_NOT_FOUND',
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
+    const existingInMovie = await this.movieGenreModel
+      .findOne({ genreId: id })
+      .exec();
+    if (existingInMovie) {
+      throw new AppException({
+        message: 'Cannot delete genre that is associated with movies',
+        errorCode: 'GENRE_IN_USE',
+        statusCode: HttpStatus.BAD_REQUEST,
+      });
+    }
+    return await this.genreModel.softDelete({ _id: id });
   }
 }

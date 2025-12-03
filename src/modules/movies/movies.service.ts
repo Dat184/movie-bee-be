@@ -15,18 +15,20 @@ import {
   MovieCast,
   MovieCastDocument,
 } from '../movie-cast/schemas/movie-cast.schemas';
-import { mongo } from 'mongoose';
+import { Model, mongo } from 'mongoose';
+import { CastService } from '../cast/cast.service';
 
 @Injectable()
 export class MoviesService {
   constructor(
     @InjectModel(Movie.name) private movieModel: SoftDeleteModel<MovieDocument>,
     @InjectModel(MovieGenre.name)
-    private movieGenreModel: SoftDeleteModel<MovieGenreDocument>,
+    private movieGenreModel: Model<MovieGenreDocument>,
     @InjectModel(MovieCast.name)
-    private movieCastModel: SoftDeleteModel<MovieCastDocument>,
+    private movieCastModel: Model<MovieCastDocument>,
 
     private cloudinaryService: CloudinaryService,
+    private castService: CastService,
   ) {}
   async create(
     createMovieDto: CreateMovieDto,
@@ -93,7 +95,6 @@ export class MoviesService {
     let offset = (+currentPage - 1) * +limit;
     let defaultLimit = +limit ? +limit : 10;
 
-    // ✅ Fix: Cast sort hoặc provide default
     const sortStage = (sort as any) || { createdAt: -1 };
 
     // Aggregation pipeline
@@ -136,7 +137,6 @@ export class MoviesService {
         },
       },
 
-      // ✅ Sort with proper type
       { $sort: sortStage },
 
       // Pagination
@@ -202,7 +202,11 @@ export class MoviesService {
     return { ...movie.toObject(), genres, casts };
   }
 
-  async update(id: string, updateMovieDto: UpdateMovieDto) {
+  async update(
+    id: string,
+    updateMovieDto: UpdateMovieDto,
+    files: { poster?: Express.Multer.File; backdrop?: Express.Multer.File },
+  ) {
     if (!mongo.ObjectId.isValid(id)) {
       throw new AppException({
         message: 'Not found Movie',
@@ -210,33 +214,75 @@ export class MoviesService {
         statusCode: HttpStatus.NOT_FOUND,
       });
     }
-    const { genreIds, castIds } = updateMovieDto;
+    const existingMovie = await this.movieModel.findById(id).exec();
+    if (!existingMovie) {
+      throw new AppException({
+        message: 'Not found Movie',
+        errorCode: 'MOVIE_NOT_FOUND',
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
+    const { genreIds, castIds, ...restDto } = updateMovieDto;
+    const dataToUpdate: any = { ...restDto };
+
+    const { poster, backdrop } = files;
+    if (poster) {
+      await this.cloudinaryService.deleteFile(
+        this.castService.extractPublicId(existingMovie.posterPath),
+        'posters',
+      );
+      const posterResponse = await this.cloudinaryService.uploadFile(
+        poster,
+        'posters',
+      );
+      dataToUpdate.posterPath = posterResponse.secure_url;
+    }
+    if (backdrop) {
+      await this.cloudinaryService.deleteFile(
+        this.castService.extractPublicId(existingMovie.backdropPath),
+        'backdrops',
+      );
+      const backdropResponse = await this.cloudinaryService.uploadFile(
+        backdrop,
+        'backdrops',
+      );
+      dataToUpdate.backdropPath = backdropResponse.secure_url;
+    }
+
     const updatedMovie = await this.movieModel.updateOne(
       { _id: id },
-      updateMovieDto,
+      dataToUpdate,
     );
-    if (genreIds) {
+
+    // ------------------------------------------------
+    // Update genreIds nếu có
+    if (genreIds && genreIds.length > 0) {
+      // Xóa tất cả genres cũ
       await this.movieGenreModel.deleteMany({ movieId: id });
-      if (genreIds.length > 0) {
-        await this.movieGenreModel.insertMany(
-          genreIds.map((genreId) => ({
-            movieId: id,
-            genreId,
-          })),
-        );
-      }
+
+      // Thêm genres mới
+      await this.movieGenreModel.insertMany(
+        genreIds.map((genreId) => ({
+          movieId: id,
+          genreId,
+        })),
+      );
     }
-    if (castIds) {
+
+    // Update castIds nếu có
+    if (castIds && castIds.length > 0) {
+      // Xóa tất cả casts cũ
       await this.movieCastModel.deleteMany({ movieId: id });
-      if (castIds.length > 0) {
-        await this.movieCastModel.insertMany(
-          castIds.map((castId) => ({
-            movieId: id,
-            castId,
-          })),
-        );
-      }
+
+      // Thêm casts mới
+      await this.movieCastModel.insertMany(
+        castIds.map((castId) => ({
+          movieId: id,
+          castId,
+        })),
+      );
     }
+
     return updatedMovie;
   }
 
