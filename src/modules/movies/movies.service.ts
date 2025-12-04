@@ -214,23 +214,66 @@ export class MoviesService {
         statusCode: HttpStatus.NOT_FOUND,
       });
     }
-    const movie = await this.movieModel.findOne({ _id: id }).exec();
-    if (!movie) {
+
+    const result = await this.movieModel.aggregate([
+      {
+        $match: {
+          _id: new mongo.ObjectId(id),
+          isDeleted: { $ne: true },
+        },
+      },
+      // Lookup genres
+      {
+        $lookup: {
+          from: 'moviegenres',
+          localField: '_id',
+          foreignField: 'movieId',
+          as: 'movieGenres',
+        },
+      },
+      {
+        $lookup: {
+          from: 'genres',
+          localField: 'movieGenres.genreId',
+          foreignField: '_id',
+          as: 'genres',
+        },
+      },
+      // Lookup casts
+      {
+        $lookup: {
+          from: 'moviecasts',
+          localField: '_id',
+          foreignField: 'movieId',
+          as: 'movieCasts',
+        },
+      },
+      {
+        $lookup: {
+          from: 'casts',
+          localField: 'movieCasts.castId',
+          foreignField: '_id',
+          as: 'casts',
+        },
+      },
+      // Project
+      {
+        $project: {
+          movieGenres: 0,
+          movieCasts: 0,
+        },
+      },
+    ]);
+
+    if (!result || result.length === 0) {
       throw new AppException({
         message: 'Not found Movie',
         errorCode: 'MOVIE_NOT_FOUND',
         statusCode: HttpStatus.NOT_FOUND,
       });
     }
-    const genres = await this.movieGenreModel
-      .find({ movieId: id })
-      .populate('genreId', 'name')
-      .exec();
-    const casts = await this.movieCastModel
-      .find({ movieId: id })
-      .populate('castId', 'name')
-      .exec();
-    return { ...movie.toObject(), genres, casts };
+
+    return result[0];
   }
 
   async update(
@@ -321,26 +364,28 @@ export class MoviesService {
     return this.movieModel.softDelete({ _id: id });
   }
 
-  async findPlaylistMovies(currentPage: number, limit: number, qs: string) {
+  async findPlaylistMovies(qs: string) {
     const { filter } = aqp(qs);
 
-    // Lấy genre từ query string
-    const genreName = filter.genre;
+    // Lấy genreId từ query string
+    const genreId = filter.genreId;
 
-    if (!genreName) {
+    if (!genreId) {
       throw new AppException({
-        message: 'Genre is required',
-        errorCode: 'GENRE_REQUIRED',
+        message: 'Genre ID is required',
+        errorCode: 'GENRE_ID_REQUIRED',
         statusCode: HttpStatus.BAD_REQUEST,
       });
     }
 
-    delete filter.current;
-    delete filter.pageSize;
-    delete filter.genre;
-
-    let offset = (+currentPage - 1) * +limit;
-    let defaultLimit = +limit ? +limit : 10;
+    // Validate genreId format
+    if (!mongo.ObjectId.isValid(genreId)) {
+      throw new AppException({
+        message: 'Invalid Genre ID',
+        errorCode: 'INVALID_GENRE_ID',
+        statusCode: HttpStatus.BAD_REQUEST,
+      });
+    }
 
     // Aggregation pipeline để lọc phim theo thể loại
     const result = await this.movieModel.aggregate([
@@ -353,6 +398,14 @@ export class MoviesService {
           as: 'movieGenres',
         },
       },
+      // Filter by genreId
+      {
+        $match: {
+          'movieGenres.genreId': new mongo.ObjectId(genreId),
+          isDisplay: true,
+          isDeleted: { $ne: true },
+        },
+      },
       // Lookup genres
       {
         $lookup: {
@@ -362,84 +415,15 @@ export class MoviesService {
           as: 'genres',
         },
       },
-      // Filter by genre name
-      {
-        $match: {
-          'genres.name': { $regex: genreName, $options: 'i' },
-          isDisplay: true,
-          isDeleted: { $ne: true }, // Thêm điều kiện này để loại bỏ phim đã xóa
-          ...filter,
-        },
-      },
-      // Lookup casts
-      {
-        $lookup: {
-          from: 'moviecasts',
-          localField: '_id',
-          foreignField: 'movieId',
-          as: 'movieCasts',
-        },
-      },
-      {
-        $lookup: {
-          from: 'casts',
-          localField: 'movieCasts.castId',
-          foreignField: '_id',
-          as: 'casts',
-        },
-      },
       { $sort: { updatedAt: -1 } },
-      { $skip: offset },
-      { $limit: defaultLimit },
       // Project
       {
         $project: {
           movieGenres: 0,
-          movieCasts: 0,
         },
       },
     ]);
 
-    // Count total items
-    const totalItems = await this.movieModel.aggregate([
-      {
-        $lookup: {
-          from: 'moviegenres',
-          localField: '_id',
-          foreignField: 'movieId',
-          as: 'movieGenres',
-        },
-      },
-      {
-        $lookup: {
-          from: 'genres',
-          localField: 'movieGenres.genreId',
-          foreignField: '_id',
-          as: 'genres',
-        },
-      },
-      {
-        $match: {
-          'genres.name': { $regex: genreName, $options: 'i' },
-          isDisplay: true,
-          isDeleted: { $ne: true },
-          ...filter,
-        },
-      },
-      { $count: 'total' },
-    ]);
-
-    const total = totalItems[0]?.total || 0;
-    const totalPages = Math.ceil(total / defaultLimit);
-
-    return {
-      meta: {
-        current: currentPage,
-        pageSize: limit,
-        pages: totalPages,
-        total,
-      },
-      result,
-    };
+    return result;
   }
 }

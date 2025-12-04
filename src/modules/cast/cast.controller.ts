@@ -15,7 +15,7 @@ import { CastService } from './cast.service';
 import { CreateCastDto } from './dto/create-cast.dto';
 import { UpdateCastDto } from './dto/update-cast.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ResponseMessage, Roles } from 'src/decorator/customize';
+import { Public, ResponseMessage, Roles } from 'src/decorator/customize';
 import { UserRole } from 'src/enums/user-role';
 
 @Controller('cast')
@@ -33,6 +33,7 @@ export class CastController {
   }
 
   @Get()
+  @Public()
   @ResponseMessage('Cast fetched successfully')
   findAll(
     @Query('current') currentPage: string,
@@ -43,6 +44,7 @@ export class CastController {
   }
 
   @Get(':id')
+  @Public()
   @ResponseMessage('Cast fetched successfully')
   findOne(@Param('id') id: string) {
     return this.castService.findOne(id);

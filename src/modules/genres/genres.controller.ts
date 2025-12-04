@@ -12,7 +12,7 @@ import {
 import { GenresService } from './genres.service';
 import { CreateGenreDto } from './dto/create-genre.dto';
 import { UpdateGenreDto } from './dto/update-genre.dto';
-import { ResponseMessage, Roles } from 'src/decorator/customize';
+import { Public, ResponseMessage, Roles } from 'src/decorator/customize';
 import { UserRole } from 'src/enums/user-role';
 
 @Controller('genres')
@@ -27,6 +27,7 @@ export class GenresController {
   }
 
   @Get()
+  @Public()
   @ResponseMessage('Genres fetched successfully')
   findAll(
     @Query('current') currentPage: string,
@@ -37,6 +38,7 @@ export class GenresController {
   }
 
   @Get(':id')
+  @Public()
   @ResponseMessage('Genre fetched successfully')
   findOne(@Param('id') id: string) {
     return this.genresService.findOne(id);

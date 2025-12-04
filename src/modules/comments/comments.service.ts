@@ -45,7 +45,7 @@ export class CommentsService {
       .find(filter)
       .skip(offset)
       .limit(defaultLimit)
-      .sort(sort as any)
+      .sort({ createdAt: -1 })
       .populate('userId', 'email lastName firstName avatar')
       .populate('movieId', 'title')
       .exec();
@@ -74,6 +74,42 @@ export class CommentsService {
       });
     }
     return isExist;
+  }
+
+  async findOnebyMovieID(movieId: string, currentPage: number, limit: number) {
+    // Kiểm tra movie có tồn tại không
+    await this.moviesService.findOne(movieId);
+
+    let offset = (+currentPage - 1) * +limit;
+    let defaultLimit = +limit ? +limit : 10;
+
+    // Filter chỉ lấy comment có isSafe = true
+    const filter = {
+      movieId,
+      isSafe: true,
+      isDeleted: { $ne: true },
+    };
+
+    const totalItems = await this.commentModel.countDocuments(filter);
+    const totalPages = Math.ceil(totalItems / defaultLimit);
+
+    const result = await this.commentModel
+      .find(filter)
+      .skip(offset)
+      .limit(defaultLimit)
+      .sort({ createdAt: -1 })
+      .populate('userId', 'email lastName firstName avatar')
+      .exec();
+
+    return {
+      meta: {
+        current: currentPage,
+        pageSize: limit,
+        pages: totalPages,
+        total: totalItems,
+      },
+      result,
+    };
   }
 
   update(id: string, updateCommentDto: UpdateCommentDto) {

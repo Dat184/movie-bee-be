@@ -13,7 +13,7 @@ import {
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
-import { ResponseMessage, Roles } from 'src/decorator/customize';
+import { Public, ResponseMessage, Roles } from 'src/decorator/customize';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { UserRole } from 'src/enums/user-role';
 
@@ -44,7 +44,7 @@ export class MoviesController {
   }
 
   @Get()
-  @Roles(UserRole.ADMIN)
+  @Public()
   @ResponseMessage('Retrieved all movies successfully')
   async findAll(
     @Query('current') currentPage: string,
@@ -55,22 +55,21 @@ export class MoviesController {
   }
 
   @Get('playlist')
+  @Public()
   @ResponseMessage('Retrieved playlist movies successfully')
-  async findPlaylistMovies(
-    @Query('current') currentPage: string,
-    @Query('pageSize') limit: string,
-    @Query() qs: string,
-  ) {
-    return this.moviesService.findPlaylistMovies(+currentPage, +limit, qs);
+  async findPlaylistMovies(@Query() qs: string) {
+    return this.moviesService.findPlaylistMovies(qs);
   }
 
   @Get('banner')
+  @Public()
   @ResponseMessage('Retrieved banner movies successfully')
   async findBannerMovies() {
     return this.moviesService.findBannerMovies();
   }
 
   @Get(':id')
+  @Public()
   async findOne(@Param('id') id: string) {
     return this.moviesService.findOne(id);
   }
