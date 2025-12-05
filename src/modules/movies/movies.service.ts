@@ -69,7 +69,7 @@ export class MoviesService {
 
     const newMovie = await this.movieModel.create({
       ...createMovieDto,
-      videoUrl: '/public/videos/video-1764933700956-995986507/master.m3u8',
+      videoUrl: '/public/videos/video-1764944639960-628983795/master.m3u8',
       isDisplay: false,
       posterPath,
       backdropPath,
@@ -306,7 +306,7 @@ export class MoviesService {
     const { genreIds, castIds, ...restDto } = updateMovieDto;
     const dataToUpdate: any = {
       ...restDto,
-      videoUrl: '/public/videos/video-1764933700956-995986507/master.m3u8',
+      // videoUrl: '/public/videos/video-1764944639960-628983795/master.m3u8',
     };
 
     const { poster, backdrop } = files;

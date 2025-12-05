@@ -21,7 +21,6 @@ export class CreateMovieDto {
   imdbRating?: string;
 
   @IsOptional()
-  @IsUrl()
   trailerUrl?: string;
 
   @IsOptional()

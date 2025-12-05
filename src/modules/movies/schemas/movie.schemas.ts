@@ -29,6 +29,9 @@ export class Movie {
 
   @Prop()
   releaseDate?: Date;
+
+  @Prop()
+  videoUrl: string;
 }
 
 export type MovieDocument = HydratedDocument<Movie>;
