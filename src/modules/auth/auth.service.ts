@@ -102,6 +102,13 @@ export class AuthService {
   };
 
   async handleRefreshToken(refreshToken: string, response: Response) {
+    if (!refreshToken) {
+      throw new AppException({
+        message: 'Invalid refresh token',
+        errorCode: 'INVALID_REFRESH_TOKEN',
+        statusCode: HttpStatus.UNAUTHORIZED,
+      });
+    }
     try {
       const payload = this.jwtService.verify(refreshToken, {
         secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),

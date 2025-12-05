@@ -15,8 +15,11 @@ import { GenresModule } from './modules/genres/genres.module';
 import { CastModule } from './modules/cast/cast.module';
 import { MovieCastModule } from './modules/movie-cast/movie-cast.module';
 import { MovieGenreModule } from './modules/movie-genre/movie-genre.module';
-import { CommentsModule } from './modules/comments/comments.module'; 
+import { CommentsModule } from './modules/comments/comments.module';
 import { ModerationModule } from './modules/moderation/moderation.module';
+import { VideoModule } from './modules/video/video.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -35,6 +38,10 @@ import { ModerationModule } from './modules/moderation/moderation.module';
     ConfigModule.forRoot({
       isGlobal: true, // để có thể sử dụng ConfigModule ở bất kỳ module nào mà không cần import lại
     }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'storage'), // Trỏ ra folder storage gốc
+      serveRoot: '/public', // Tiền tố URL. File sẽ nằm ở localhost:3000/public/...
+    }),
     UsersModule,
     AuthModule,
     MailModule,
@@ -46,6 +53,7 @@ import { ModerationModule } from './modules/moderation/moderation.module';
     MovieGenreModule,
     CommentsModule,
     ModerationModule,
+    VideoModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,11 +1,9 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { MoviesController } from './movies.controller';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Movie, MovieSchema } from './schemas/movie.schemas';
-import { MovieGenreModule } from '../movie-genre/movie-genre.module';
-import { MovieCastModule } from '../movie-cast/movie-cast.module';
 import {
   MovieCast,
   MovieCastSchema,
@@ -15,6 +13,7 @@ import {
   MovieGenreSchema,
 } from '../movie-genre/schemas/movie-genre.schemas';
 import { CastModule } from '../cast/cast.module';
+import { VideoModule } from '../video/video.module';
 
 @Module({
   controllers: [MoviesController],
@@ -26,7 +25,8 @@ import { CastModule } from '../cast/cast.module';
       { name: MovieGenre.name, schema: MovieGenreSchema },
     ]),
     CloudinaryModule,
-    CastModule
+    CastModule,
+    forwardRef(() => VideoModule),
   ],
   exports: [MoviesService],
 })

@@ -45,30 +45,37 @@ export class MoviesService {
       });
     }
     const { poster, backdrop } = files;
-    const posterResponse = await this.cloudinaryService.uploadFile(
-      poster,
-      'posters',
-    );
-    const backdropResponse = await this.cloudinaryService.uploadFile(
-      backdrop,
-      'backdrops',
-    );
+    let posterPath = null;
+    let backdropPath = null;
+    if (poster) {
+      const posterResponse = await this.cloudinaryService.uploadFile(
+        poster,
+        'posters',
+      );
+      posterPath = posterResponse.secure_url;
+    }
+    if (backdrop) {
+      const backdropResponse = await this.cloudinaryService.uploadFile(
+        backdrop,
+        'backdrops',
+      );
+      backdropPath = backdropResponse.secure_url;
+    }
 
     // Lấy secure_url từ response
-    const posterPath = posterResponse.secure_url;
-    const backdropPath = backdropResponse.secure_url;
 
     // xử lý Cast và Genre
     const { genreIds, castIds } = createMovieDto;
 
     const newMovie = await this.movieModel.create({
       ...createMovieDto,
+      videoUrl: '/public/videos/video-1764933700956-995986507/master.m3u8',
       isDisplay: false,
       posterPath,
       backdropPath,
     });
 
-    if (genreIds.length > 0) {
+    if (genreIds && genreIds.length > 0) {
       await this.movieGenreModel.insertMany(
         genreIds.map((genreId) => ({
           movieId: newMovie._id, // sẽ cập nhật sau
@@ -76,7 +83,7 @@ export class MoviesService {
         })),
       );
     }
-    if (castIds.length > 0) {
+    if (castIds && castIds.length > 0) {
       await this.movieCastModel.insertMany(
         castIds.map((castId) => ({
           movieId: newMovie._id, // sẽ cập nhật sau
@@ -297,14 +304,19 @@ export class MoviesService {
       });
     }
     const { genreIds, castIds, ...restDto } = updateMovieDto;
-    const dataToUpdate: any = { ...restDto };
+    const dataToUpdate: any = {
+      ...restDto,
+      videoUrl: '/public/videos/video-1764933700956-995986507/master.m3u8',
+    };
 
     const { poster, backdrop } = files;
     if (poster) {
-      await this.cloudinaryService.deleteFile(
-        this.castService.extractPublicId(existingMovie.posterPath),
-        'posters',
-      );
+      if (existingMovie.posterPath) {
+        await this.cloudinaryService.deleteFile(
+          this.castService.extractPublicId(existingMovie.posterPath),
+          'posters',
+        );
+      }
       const posterResponse = await this.cloudinaryService.uploadFile(
         poster,
         'posters',
@@ -312,10 +324,12 @@ export class MoviesService {
       dataToUpdate.posterPath = posterResponse.secure_url;
     }
     if (backdrop) {
-      await this.cloudinaryService.deleteFile(
-        this.castService.extractPublicId(existingMovie.backdropPath),
-        'backdrops',
-      );
+      if (existingMovie.backdropPath) {
+        await this.cloudinaryService.deleteFile(
+          this.castService.extractPublicId(existingMovie.backdropPath),
+          'backdrops',
+        );
+      }
       const backdropResponse = await this.cloudinaryService.uploadFile(
         backdrop,
         'backdrops',
