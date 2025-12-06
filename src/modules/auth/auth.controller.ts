@@ -89,7 +89,7 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   async googleCallback(@User() user: IUser, @Res() res: Response) {
     await this.authService.login(user, res);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
+    const frontendUrl = process.env.FRONTEND_URL;
     return res.redirect(`${frontendUrl}`);
   }
 }
