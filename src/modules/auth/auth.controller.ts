@@ -87,10 +87,7 @@ export class AuthController {
   @Public()
   @ResponseMessage('Google login successful')
   @UseGuards(GoogleAuthGuard)
-  async googleCallback(
-    @User() user: IUser,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  async googleCallback(@User() user: IUser, @Res() res: Response) {
     await this.authService.login(user, res);
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
     return res.redirect(`${frontendUrl}`);
