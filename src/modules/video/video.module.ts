@@ -4,6 +4,7 @@ import { VideoController } from './video.controller';
 import { MoviesModule } from '../movies/movies.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Movie, MovieSchema } from '../movies/schemas/movie.schemas';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   controllers: [VideoController],
@@ -11,6 +12,7 @@ import { Movie, MovieSchema } from '../movies/schemas/movie.schemas';
   imports: [
     MongooseModule.forFeature([{ name: Movie.name, schema: MovieSchema }]),
     forwardRef(() => MoviesModule),
+    MailModule,
   ],
   exports: [VideoService],
 })

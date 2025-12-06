@@ -24,4 +24,14 @@ export class MailService {
       context: context,
     });
   }
+
+  async sendSuccessUploadMovie(email: string, context: object) {
+    await this.mailService.sendMail({
+      to: email,
+      from: 'Support MovieBee',
+      subject: 'Upload Movie Thành Công - MovieBee',
+      template: 'upload-movie-success',
+      context: context,
+    });
+  }
 }

@@ -5,12 +5,14 @@ import * as fs from 'fs';
 import { Movie, MovieDocument } from '../movies/schemas/movie.schemas';
 import { InjectModel } from '@nestjs/mongoose';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class VideoService {
   private readonly logger = new Logger(VideoService.name);
   constructor(
     @InjectModel(Movie.name) private movieModel: SoftDeleteModel<MovieDocument>,
+    private mailService: MailService,
   ) {
     const ffmpegPath =
       'D:\\ffmpeg\\ffmpeg-2025-12-01-git-7043522fe0-full_build\\bin\\ffmpeg.exe';
@@ -21,6 +23,7 @@ export class VideoService {
     inputPath: string,
     fileId: string,
     movieId: string,
+    userEmail: string,
   ) {
     // Kiểm tra file input có tồn tại không
     if (!fs.existsSync(inputPath)) {
@@ -88,6 +91,10 @@ export class VideoService {
             });
 
             this.logger.log(`Đã cập nhật link phim cho Movie: ${movieId}`);
+            this.mailService.sendSuccessUploadMovie(userEmail, {
+              name: userEmail,
+              movieId,
+            });
 
             // Xóa file gốc
             fs.unlinkSync(inputPath);

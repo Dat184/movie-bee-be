@@ -300,4 +300,13 @@ export class UsersService {
       avatar: uploadResult.url,
     };
   }
+
+  async getNewUsersCount() {
+    const since = new Date();
+    since.setDate(since.getDate() - 7);
+    const count = await this.userModel.countDocuments({
+      createdAt: { $gte: since },
+    });
+    return { newUsersCount: count };
+  }
 }

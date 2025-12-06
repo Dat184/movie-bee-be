@@ -33,6 +33,13 @@ export class UsersController {
     return this.usersService.findAll(+currentPage, +limit, qs);
   }
 
+  @Get('newUsersCount')
+  @Roles(UserRole.ADMIN)
+  @ResponseMessage('New users count fetched successfully')
+  getNewUsersCount() {
+    return this.usersService.getNewUsersCount();
+  }
+
   @Get(':id')
   @Roles(UserRole.ADMIN)
   @ResponseMessage('User fetched successfully')

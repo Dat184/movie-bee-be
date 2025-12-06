@@ -17,6 +17,8 @@ import {
 } from '../movie-cast/schemas/movie-cast.schemas';
 import { Model, mongo } from 'mongoose';
 import { CastService } from '../cast/cast.service';
+import { IUser } from '../users/users.interface';
+import { use } from 'passport';
 
 @Injectable()
 export class MoviesService {
@@ -106,7 +108,7 @@ export class MoviesService {
 
     // Aggregation pipeline
     const result = await this.movieModel.aggregate([
-      { $match: filter },
+      { $match: { ...filter, isDeleted: { $ne: true } } },
 
       // Lookup genres
       {
@@ -374,7 +376,35 @@ export class MoviesService {
     return updatedMovie;
   }
 
-  remove(id: string) {
+  async remove(id: string) {
+    if (!mongo.ObjectId.isValid(id)) {
+      throw new AppException({
+        message: 'Not found Movie',
+        errorCode: 'MOVIE_NOT_FOUND',
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
+    const isExist = await this.movieModel.findById(id);
+    if (!isExist) {
+      throw new AppException({
+        message: 'Not found Movie',
+        errorCode: 'MOVIE_NOT_FOUND',
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
+    if (isExist.posterPath) {
+      await this.cloudinaryService.deleteFile(
+        this.castService.extractPublicId(isExist.posterPath),
+        'posters',
+      );
+    }
+    if (isExist.backdropPath) {
+      await this.cloudinaryService.deleteFile(
+        this.castService.extractPublicId(isExist.backdropPath),
+        'backdrops',
+      );
+    }
+
     return this.movieModel.softDelete({ _id: id });
   }
 

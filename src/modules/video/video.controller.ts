@@ -11,13 +11,14 @@ import { VideoService } from './video.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path/win32';
-import { ResponseMessage } from 'src/decorator/customize';
+import { ResponseMessage, User } from 'src/decorator/customize';
+import { IUser } from '../users/users.interface';
 
 @Controller('video')
 export class VideoController {
   constructor(private readonly videoService: VideoService) {}
 
-  @Get('test-ffmpeg') // Truy cập vào localhost:3000/test-ffmpeg để chạy
+  @Get('test-ffmpeg')
   triggerTest() {
     // return this.videoService.convertToHls();
   }
@@ -52,6 +53,7 @@ export class VideoController {
   async uploadVideo(
     @Param('movieId') movieId: string,
     @UploadedFile() file: Express.Multer.File,
+    @User() user: IUser,
   ) {
     if (!file) {
       throw new BadRequestException('No file uploaded');
@@ -61,8 +63,8 @@ export class VideoController {
     const fileId = file.filename.replace(extname(file.filename), '');
 
     // Xử lý video background (không chờ)
-    this.videoService
-      .processVideoAndLinkToMovie(file.path, fileId, movieId)
+    await this.videoService
+      .processVideoAndLinkToMovie(file.path, fileId, movieId, user.email)
       .catch((err) => console.error('Video processing error:', err));
 
     return {

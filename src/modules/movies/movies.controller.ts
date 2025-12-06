@@ -13,9 +13,10 @@ import {
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
-import { Public, ResponseMessage, Roles } from 'src/decorator/customize';
+import { Public, ResponseMessage, Roles, User } from 'src/decorator/customize';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { UserRole } from 'src/enums/user-role';
+import { IUser } from '../users/users.interface';
 
 @Controller('movies')
 export class MoviesController {
