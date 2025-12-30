@@ -5,16 +5,28 @@ import { Client } from '@gradio/client';
 export class ModerationService {
   private client: any;
   private readonly logger = new Logger(ModerationService.name);
+  private isConnected: boolean = false;
 
   async onModuleInit() {
-    this.logger.log('Connecting to PhoBERT Space...');
-    this.client = await Client.connect('Btad184/phobert-demo');
-    this.logger.log('Connected to AI Model!');
+    try {
+      this.logger.log('Connecting to PhoBERT Space...');
+      this.client = await Client.connect('Btad184/final', {
+        token: `hf_${process.env.HUGGING_FACE_API_KEY}`,
+      });
+      this.isConnected = true;
+      this.logger.log('Connected to AI Model!');
+    } catch (error) {
+      this.logger.warn(
+        'Failed to connect to AI Model. Moderation will default to safe mode.',
+      );
+      this.logger.error(error.message);
+      this.isConnected = false;
+    }
   }
 
   async checkComment(content: string) {
     try {
-      const result = await this.client.predict('/predict', {
+      const result = await this.client.predict('/predict_sentiment', {
         text: content,
       });
 
@@ -27,7 +39,7 @@ export class ModerationService {
         label: topLabel,
       };
     } catch (error) {
-      console.error('AI Error:', error);
+      this.logger.error('AI Error:', error);
       return { isSafe: true, label: 'Error', details: [] };
     }
   }

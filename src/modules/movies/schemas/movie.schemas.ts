@@ -28,9 +28,6 @@ export class Movie {
   isDisplay: boolean;
 
   @Prop()
-  releaseDate?: Date;
-
-  @Prop()
   videoUrl: string;
 }
 

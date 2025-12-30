@@ -404,6 +404,9 @@ export class MoviesService {
         'backdrops',
       );
     }
+    await this.movieGenreModel.deleteMany({
+      movieId: id
+    })
 
     return this.movieModel.softDelete({ _id: id });
   }
